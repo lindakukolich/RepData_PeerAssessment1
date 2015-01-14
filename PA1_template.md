@@ -1,15 +1,8 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
-author: "Linda Kukolich"
-date: "January 10, 2015"
----
+# Reproducible Research: Peer Assessment 1
+Linda Kukolich  
+January 10, 2015  
 
-```{r, echo=FALSE}
-showWork = TRUE
-```
+
 *This introduction and descripton of the data is copied from the homework assignment found at* [https://github.com/rdpeng/RepData_PeerAssessment1/blob/master/README.md]
 
 ## Introduction
@@ -62,7 +55,8 @@ dataset.
 File was downloaded from [https://github.com/rdpeng/RepData_PeerAssesment1/blob/master/activity.zip] on January 10, 2015. The version of the respository used has SHA hash 80edf39c3bb508fee88e3394542f967dd3fd3270. activity.zip was last modified February 11, 2014.
 
 
-```{r, echo = showWork}
+
+```r
 # read the activity file
 activityFile <- "activity.csv"
 if (! file.exists(activityFile)) {
@@ -79,7 +73,23 @@ if (! file.exists(activityFile)) {
   print(paste("unziping", compressedFile))
   unzip(compressedFile)
 }
+```
+
+```
+## [1] "downloading activity.zip"
+## [1] "Sat Jan 10 18:00:10 2015"
+## [1] "unziping activity.zip"
+```
+
+```r
 print(paste("reading", activityFile))
+```
+
+```
+## [1] "reading activity.csv"
+```
+
+```r
 activityFrame <- read.csv(activityFile, header=TRUE)
 
 activityFrame$date <- as.Date(activityFrame$date)
@@ -90,7 +100,8 @@ For this part of the assignment, you can ignore the missing values in the datase
 
 1. Make a histogram of the total number of steps taken each day
 2. Calculate and report the mean and median total number of steps taken per day
-```{r, echo = showWork}
+
+```r
 dailySteps <- function(AF, title="Histogram of dailySteps") {
   dailyActivity <- split(AF, AF$date)
   dailySteps <- sapply(dailyActivity, function(x)sum(x$steps, na.rm=TRUE), simplify=TRUE, USE.NAMES=FALSE)
@@ -109,11 +120,14 @@ dailySteps <- function(AF, title="Histogram of dailySteps") {
 sdDailySteps <- dailySteps(activityFrame)
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-3-1.png) 
+
 Above is a histrogram showing how often the subject took a given number of steps as recorded in our data set. On average, the subject takes about 9354 steps per day, with a median value of 10395.
 
 ## What is the average daily activity pattern?
 1. Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
-```{r, echo=showWork}
+
+```r
 fiveMinuteActivity <- split(activityFrame, activityFrame$interval)
 fiveMinuteSteps <- sapply(fiveMinuteActivity, function(x)mean(x$steps, na.rm=TRUE))
 fiveMinuteMedianSteps <- sapply(fiveMinuteActivity, function(x)median(x$steps, na.rm=TRUE))
@@ -122,18 +136,27 @@ xticks <- seq(49, 250, by=24)
 axis(1, at = xticks, labels=names(fiveMinuteSteps[xticks]))
 points(which.max(fiveMinuteSteps), max(fiveMinuteSteps), col="red")
 legend("topright", pch=1, col=c("red", "transparent"), legend = c(paste("Maximum Value", 0.01 * max(fiveMinuteSteps) %/% 0.01), paste("at", names(which.max(fiveMinuteSteps)))))
+```
 
+![](PA1_template_files/figure-html/unnamed-chunk-4-1.png) 
+
+```r
 # Show the median values. This was used in selecting a strategy in question 2
 if (FALSE) {
   lines(fiveMinuteMedianSteps, col="blue", type="l")
   legend("topleft", lty=1, col=c("black", "blue"), legend = c("Mean values", "Median values"))
   }
-
 ```
 
 2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
-```{r, echo=showWork}
+
+```r
 which.max(fiveMinuteSteps)
+```
+
+```
+## 835 
+## 104
 ```
 The most active time of day is between about 8:00 and 9:00 AM. The peak activity is between 8:35 and 8:40 AM, which has an average of about 206 steps in those 5 minutes.
 
@@ -142,23 +165,41 @@ Note that there are a number of days/intervals where there are missing values (c
 
 1. Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
 
-```{r, echo = showWork}
+
+```r
 paste("missing values", sum(is.na(activityFrame$steps)))
+```
+
+```
+## [1] "missing values 2304"
 ```
 
 There are 2304 missing values in the table.
 
 2. Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
-```{r, echo=showWork}
+
+```r
 paste("Daily Steps taken from mean five minute values", sum(fiveMinuteSteps))
+```
+
+```
+## [1] "Daily Steps taken from mean five minute values 10766.1886792453"
+```
+
+```r
 paste("Daily Steps taken from median five minute values", sum(fiveMinuteMedianSteps))
+```
+
+```
+## [1] "Daily Steps taken from median five minute values 1141"
 ```
 
 The median values for five minute intervals result in a total number of steps per day which is much lower than either the mean or median values for actual whole days. I will replace missing values with the means from each five minute interval, which seems to be a more accurate representation of an average day.
 
 3. Create a new dataset that is equal to the original dataset but with the missing data filled in.
 
-```{r, echo = showWork}
+
+```r
 activityNoNA <- activityFrame
 activityNoNA$steps <- mapply(function(df, five){if(is.na(df)){five}else{df}}, activityNoNA$steps, fiveMinuteSteps)
 ```
@@ -166,26 +207,43 @@ activityNoNA$steps <- mapply(function(df, five){if(is.na(df)){five}else{df}}, ac
 4. Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
 
 
-```{r, echo = showWork}
+
+```r
 activityNoNA <- activityFrame
 activityNoNA$steps <- mapply(function(df, five){if(is.na(df)){five}else{df}}, activityNoNA$steps, fiveMinuteSteps)
 sdDailyNoNA <- dailySteps(activityNoNA, title="Steps per Day, imputing NA values")
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-9-1.png) 
+
 The original mean was 9354 steps per day, and the original median was 10395. Replacing missing values with the mean value for the given time of day increased the mean and median, with both being about 10766. Interestingly, because we have introduced non-integer numbers of steps, the median value is no longer an integer. In terms of the histogram, there are many fewer "zero activity" days. These days have been replaced with "average" days, which has greatly increased the number of average days. The increase in height on in the histogram bin containing the average makes the variability of the data appear to be less. We have improved the mean at the cost of having a good sense of our standard deviation.
-```{r, echo=showWork}
+
+```r
 print(paste("Standard deviation of original daily step count", sdDailySteps))
+```
+
+```
+## [1] "Standard deviation of original daily step count 5405.89509515135"
+```
+
+```r
 print(paste("Standard deviation of daily step count with imputed data", sdDailyNoNA))
+```
+
+```
+## [1] "Standard deviation of daily step count with imputed data 3974.39074599954"
 ```
 ## Are there differences in activity patterns between weekdays and weekends?
 For this part the weekdays() function may be of some help here. Use the dataset with the filled-in missing values for this part.
 
 1. Create a new factor variable in the dataset with two levels -- "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
-```{r, echo=showWork}
+
+```r
 activityNoNA$partOfWeek <- sapply(activityNoNA$date, function(x)if(weekdays(x) %in% c("Saturday", "Sunday"))"weekend" else "weekday")
 ```
 2. Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). The plot should look something like the following, which was created using simulated data:
-```{r, echo=showWork}
+
+```r
   weekdayFrame <- subset(activityNoNA, activityNoNA$partOfWeek == "weekday")
   weekendFrame <- subset(activityNoNA, activityNoNA$partOfWeek == "weekend")
   layout(matrix(c(1,2), 2, 1, byrow = TRUE))
@@ -212,16 +270,48 @@ activityNoNA$partOfWeek <- sapply(activityNoNA$date, function(x)if(weekdays(x) %
   axis(4, at = yticks, labels=FALSE)
   mtext("Number of Steps", side = 2, line = 0, outer=TRUE)
   mtext("Time Interval", side = 1, line=0, outer=TRUE)
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-12-1.png) 
+
+```r
   print(paste("Average Steps on Weekdays", sum(weekdaySteps)))
+```
+
+```
+## [1] "Average Steps on Weekdays 10255.8473794549"
+```
+
+```r
   print(paste("Average Steps on Weekends", sum(weekendSteps)))
+```
+
+```
+## [1] "Average Steps on Weekends 12201.5235849057"
 ```
 
 The pattern of activity on weekdays differs from that on weekends. On the weekend, there is a larger number of steps taken, on average, than on weekdays. However, on weekdays, most of the steps are taken at a particular time. It appears as though the person who generated this data has a regular workout on weekday mornings, and is then less active through the rest of the day. Conversely, there is no clear schedule of activity on weekends, but there is generally more activity then.
 
 The following two histrograms show this difference in the weekend and weekday daily step totals.
-```{r, echo=showWork}
+
+```r
 print(paste("Standard deviation of daily step totals for weekdays", dailySteps(weekdayFrame, title="Steps on Weekdays")))
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-13-1.png) 
+
+```
+## [1] "Standard deviation of daily step totals for weekdays 4364.07467512351"
+```
+
+```r
 print(paste("Standard deviation of daily step totals for weekends", dailySteps(weekendFrame, title="Steps on Weekends")))
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-13-2.png) 
+
+```
+## [1] "Standard deviation of daily step totals for weekends 2082.90269681637"
 ```
 
 The subject has a higher number of "average" days on (12 of the 61 days) weekdays, and a lower number of inactive days (5000 steps or less) on weekends.
